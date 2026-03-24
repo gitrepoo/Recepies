@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import *
 from django.contrib.auth.models import User 
 from django.contrib import messages
@@ -53,6 +53,7 @@ def receipe(request):
         receipe_image = request.FILES.get('receipe_image')
 
         Recepie.objects.create(
+          user=request.user,
           receipe = receipe,
           receipe_description = receipe_description,
           receipe_image = receipe_image,
@@ -72,34 +73,36 @@ def receipe(request):
 
 @login_required(login_url='/login/')
 def delete_receipe(request, id):
-    queryset = Recepie.objects.get(id = id)
-    queryset.delete()
+    del_recepie = get_object_or_404( Recepie, id=id)
+
+    if del_recepie.user != request.user:
+        return HttpResponse("Not allowed", status=403)
+    
+    del_recepie.delete()
     return redirect('/receipe/')
 
 
 
 @login_required(login_url='/login/')
 def update_receipe(request, id):
-    queryset = Recepie.objects.get(id = id)
+    update_rec = get_object_or_404(Recepie, id=id)
+
+    if update_rec.user != request.user:
+        return HttpResponse("Not allowed", status=403)
 
     if request.method == "POST":
         data = request.POST
 
-        receipe = data.get('receipe')
-        receipe_description = data.get('receipe_description')
-        receipe_image = request.FILES.get('receipe_image')
+        update_rec.receipe = data.get('receipe')
+        update_rec.receipe_description = data.get('receipe_description')
 
-        queryset.receipe = receipe
-        queryset.receipe_description = receipe_description  
+        if request.FILES.get('receipe_image'):
+            update_rec.receipe_image = request.FILES.get('receipe_image')
 
-        if receipe_image:
-            queryset.receipe_image = receipe_image
-
-
-        queryset.save()    
+        update_rec.save()   
         return redirect('/receipe/')
 
-    context = {"receipe": queryset} 
+    context = {"receipe": update_rec}
     return render(request, 'update_receipe.html', context)
    
 

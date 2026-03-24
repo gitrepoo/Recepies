@@ -92,8 +92,10 @@
           <td>
             <img src="/media/{{recep.receipe_image}}" style="height :60px"></td>
         <td>
-         <a href="/delete-receipe/{{recep.id}}" class="btn btn-danger m-2">Delete</a> 
-         <a href="/update-receipe/{{recep.id}}" class="btn btn-success">Update</a> 
+          {% if recep.user == request.user %}
+            <a href="/delete-receipe/{{recep.id}}" class="btn btn-danger m-2">Delete</a> 
+            <a href="/update-receipe/{{recep.id}}" class="btn btn-success">Update</a> 
+          {% endif %}  
         </td>
       </tr> 
         {% endfor %}
